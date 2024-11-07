@@ -1,0 +1,34 @@
+Why we need container over Virtual Machine?
+
+1.LightWeight Architecture & Better Resoruce Utilization & Cost Efficiency = Container share the Same host OS and avoid the duplication of OS services.
+  This allow more container run on the same hardware.(Better utilization of hardware)
+
+  Virtual Machine have separate OS,and running multipe OS instance which consuming
+  more disk space,memory or CPU.(require more CPU and Memory per instance/per VMs.)
+
+
+2.Faster Startup Time & Scalibility =  Container start in second or milliseconds because they don't need to boot a full OS.Better scale up an application becuause container
+  quickly started and stopped to meed demand.
+
+Virutal Machine often takes a minutes becuase VM boots its own OS.Not better scale due to longer startup times and larger resource requirement.
+
+3.Each containers have uniquely identify with the help of the namespace(Linux namespace).So Containers have Application-Level Isolation.
+  Each VM have uniquely identify with differnet instance of OS running.So VM have OS-Level Isolation.
+
+******VM is more isolated then Contaniers because VM have separate OS so if host os or another VM os is disturb then another one not impace but in container due to share OS if host OS crash
+then all Containers will disturb.*********
+
+
+
+How In the same host same port can run in the container's same port even if both on the same machine is same
+
+Each container is typically assigned a unique internal IP address by the container runtime (like Docker) when they’re connected to a virtual network (such as Docker's default bridge network). 
+This unique internal IP for each container allows them to use the same ports without conflict.
+                  When you start containers on a Docker bridge network (the default network mode), Docker assigns each container its own internal IP address within a specific subnet.
+
+
+For example:
+Container A might have IP 172.17.0.2 and run a service on port 80.
+Container B might have IP 172.17.0.3 and also run a service on port 80.
+Because each container’s IP address is unique, these port 80 services don’t conflict with each other.
+

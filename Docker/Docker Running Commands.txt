@@ -1,0 +1,62 @@
+There are various way to run the container using docker image (images)
+
+Docker generally provide only one main type of shell access to the docker's environment, but there are different ways to interact with the shell.Overall,shell same only difference inside os internally interactive shell provide command execute.
+e.g with image interact shell or with os interact shell.
+
+1. Foreground(Attached Mode)
+docker run <Image_name>
+or 
+docker run <Image_name> bash
+This command is useful if we want to desinged a container to once process completed,or exist immedately the container will stop.
+
+What is happend?
+
+  i. When you run docker run <image-name>, Docker will start a container and execute the default command defined in the image (the command set in the Dockerfile’s CMD or ENTRYPOINT).
+
+  ii. If that command finishes quickly (e.g., a script or a basic command), the container will exit, and you won’t see it in the docker ps list since docker ps only shows running containers.
+
+
+
+2.Background (Detached Mode)
+docker run -d <image-name>
+or 
+docker run -d <image-name> bash
+
+When you run docker run -d node with the -d flag (detached mode), the container will try to start in the background. However, if the node image doesn't have a long-running process
+(like a server or process that keeps it running), the container will exit almost immediately.
+
+
+3.Interactive Mode
+docker run -it <image-name>
+or
+docker run -it <image-name> bash
+
+This is especially useful if you want to interact with the container’s shell.You use the -it flags to start a container in interactive mode and open a terminal session inside the container.
+This is commonly used for debugging or running commands manually within a container.
+
+4.Execution Command
+This command only execute already running container.
+
+
+5.Detached Mode with interactive terminal shell.
+docker run -d -it <image_name>
+or
+docker run -d it <image_name> bash
+
+Key Differences and Why They Matter
+Detached Mode (-d): Starts the container in the background but doesn’t prevent it from exiting if there’s no long-running process inside. In most cases, without a long-running application,
+the container exits right after it starts.
+
+Interactive Mode (-it): Allocates a terminal and keeps the container open for interaction, but without a long-running task, the container still exits when you close the session or type 
+exit.
+
+Combination of -d and -it: In this case, the combination of -d and -it creates a specific behavior: Docker allocates a terminal (-t), and the container starts running in detached mode (-d),
+but it still tries to keep the terminal open and wait for input because of the -it flags. However, there’s a subtle difference here:
+
+Even though the container is in detached mode (-d), it tries to allocate a terminal session because of the -it flags. This allows Docker to keep the container running even though there’s 
+no long-running process.
+Since the terminal is interactive and waiting for input, the container does not immediately exit. You could still interact with the container via docker attach <container-id> or run a 
+process within it that keeps the container alive.
+
+
+
