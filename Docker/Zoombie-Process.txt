@@ -2,3 +2,36 @@ Process = Program/Application in the running state is called process.It means it
 
 Child Process = A child process is a new process created (or "spawned") by an existing process, known as the parent process.The parent process can create one or more child processes to
                 help it perform tasks in parallel.
+                Example
+                Imagine you open a web browser (the parent process), and then you open a new tab to watch a video. The browser might create a child process to handle the video so that if 
+                the video crashes, your entire browser doesn’t crash.
+                                                 const { spawn } = require('child_process');
+                                                 const child = spawn('ls', ['-la']);
+ 
+                When a child process finishes its work, it needs to be cleaned up by the parent process. If not, it can become a zombie process:
+
+Zoombie Process = A zombie process is a process that has finished running but hasn't been cleaned up, so it’s still taking up system resources.
+                  When stopping the container, signals may not reach all child processes, which could lead to unclean shutdowns.
+
+
+********************To Prevent From the Zoombie Process and Helps Manage Chile Process Docker come with --init flag*******************************
+When you use docker run --init <image_name>, Docker includes a lightweight program called tini as the init process in the container:
+1. tini becomes the PID 1 process in the container.
+2. The main application (e.g., a web server) then runs as a child of tini.
+
+When you stop the container, tini forwards stop signals to all child processes, helping to shut down the container more cleanly.
+
+
+For simpler applications that don’t spawn child processes, --init may not be necessary but is still beneficial for ensuring clean shutdowns.
+Like Leetcode, example main leetcode server running in the particular container when user hit the run the command to execute then that container run the new child process to exectue that 
+command so handle like this
+
+
+
+Many modern frameworks, libraries, and programming languages include ways to manage child processes effectively. However, not all applications are good at handling child processes
+consistently, and here's why
+
+1.Many popular languages (like Node.js, Python, and Java) and frameworks have built-in ways to handle child processes, including process cleanup.
+
+2.Just because the tools are available doesn’t mean they’re always used correctly. The responsibility of managing child processes lies with the developer.
+
