@@ -1,62 +1,67 @@
 There are various way to run the container using docker image (images)
+1. The container executes whatever is defined as the default command in the Docker image’s Dockerfile (through the CMD or ENTRYPOINT instructions). This could be a web server, an 
+   application, or any service the image is designed to run.
+            In a production environment, this is the most common and correct way to run containers. The container will run in the background (or foreground) executing the default process defined
+   in the Dockerfile.
 
-Docker generally provide only one main type of shell access to the docker's environment, but there are different ways to interact with the shell.Overall,shell same only difference inside os internally interactive shell provide command execute.
-e.g with image interact shell or with os interact shell.
+Typical Use Cases:-
+            When you don't need to interact with the container directly, and it's meant to be part of an automated process or service.
+                                                      or
+            When the container is supposed to execute an application or service, such as a web app, database server, or API.
+  
+2. This command also starts a container from the specified image, but instead of executing the default command, it overrides the default command (CMD or ENTRYPOINT) and runs a bash shell 
+   inside the container.You will be dropped into the shell of the container (if you're using -it for interactive mode), and you can run commands inside the container manually.
 
-1. Foreground(Attached Mode)
-docker run <Image_name>
-or 
-docker run <Image_name> bash
-This command is useful if we want to desinged a container to once process completed,or exist immedately the container will stop.
+Typical Use Cases:- 
 
-What is happend?
+            if you have a custom image and need to debug or configure something inside the container/require to see some logs(action inside the containers), you could run docker run <Image_name> bash to get a shell 
+            prompt.
+                                                        
 
-  i. When you run docker run <image-name>, Docker will start a container and execute the default command defined in the image (the command set in the Dockerfile’s CMD or ENTRYPOINT).
+Different Ways to Run the Container.
+(FOI,generally When you run Docker, there are several types of shells you can interact with as mentioned above(different run with different iteractive shell))
+1.Foreground Run Container(Attached Mode)
+syntax e.g
+(docker run node) or (docker run nodejs-server)
+Here If you run docker run node, the container will start, execute whatever is defined in the CMD of the Dockerfile (which could be an immediate task or nothing), and exit with output of the conatiner
+if in dockerfile does not contain long running process command.But either long running process have or not the ouput of the container is always shown.Even if exit forcefully and container have
+long running process then never exit container itself because the long running process not exit by the container shell.It is exit from the Host Os Shell.
 
-  ii. If that command finishes quickly (e.g., a script or a basic command), the container will exit, and you won’t see it in the docker ps list since docker ps only shows running containers.
+(docker run node bash) or (docker run nodejs-server bash)
+Here the container is running but instead of dockerfile command it execute user's command so in both cases if long running process bootup by the dockerfile that not bootup.
 
+(docker run -it node) or (docker run -it nodejs-server)
+Here the -it mode is running but It seems like the container is running indefinitely, but in reality, it's just waiting for you to interact with it. When you exit the shell, 
+the container will stop in not long running process.If long running process and exit then first exit from the long running process becuase the process whrere run that shell is open
 
-
-2.Background (Detached Mode)
-docker run -d <image-name>
-or 
-docker run -d <image-name> bash
-
-When you run docker run -d node with the -d flag (detached mode), the container will try to start in the background. However, if the node image doesn't have a long-running process
-(like a server or process that keeps it running), the container will exit almost immediately.
-
-
-3.Interactive Mode
-docker run -it <image-name>
-or
-docker run -it <image-name> bash
-
-This is especially useful if you want to interact with the container’s shell.You use the -it flags to start a container in interactive mode and open a terminal session inside the container.
-This is commonly used for debugging or running commands manually within a container.
-
-4.Execution Command
-This command only execute already running container.
+(docker run -it node bash) or (docker run -it nodejs-server)
+Either long running process present in image file or not if that command overide then long running process will not done and exit when the shell session exit.
 
 
-5.Detached Mode with interactive terminal shell.
-docker run -d -it <image_name>
-or
-docker run -d it <image_name> bash
+2.Background Run Container(Detached Mode)
+(docker run -d node) or (docker run -d nodejs-server)
+Overall, All image's container run in the background and not showing output because of background running if non-running process then run behind the scene if not then exit.
 
-Key Differences and Why They Matter
-Detached Mode (-d): Starts the container in the background but doesn’t prevent it from exiting if there’s no long-running process inside. In most cases, without a long-running application,
-the container exits right after it starts.
+(docker run -d node bash) or (docker run -d nodejs-server bash)
+Overall, all images run in background due to override the dockerfile's command then if running process either long or not never executed.and exited in background.
 
-Interactive Mode (-it): Allocates a terminal and keeps the container open for interaction, but without a long-running task, the container still exits when you close the session or type 
-exit.
+(docker run -d -it node) or (docker run -d -it nodejs-server)
+Overall, All images's container run in the background and iteractive mode shell session provided but due to backgorund we can access in attach command if shell session acces then 
+behavious afterwards same as without -it mode.
 
-Combination of -d and -it: In this case, the combination of -d and -it creates a specific behavior: Docker allocates a terminal (-t), and the container starts running in detached mode (-d),
-but it still tries to keep the terminal open and wait for input because of the -it flags. However, there’s a subtle difference here:
 
-Even though the container is in detached mode (-d), it tries to allocate a terminal session because of the -it flags. This allows Docker to keep the container running even though there’s 
-no long-running process.
-Since the terminal is interactive and waiting for input, the container does not immediately exit. You could still interact with the container via docker attach <container-id> or run a 
-process within it that keeps the container alive.
+(docker run -d -it node bash) or (docker run -d -it nodejs-server bash)
+Overall, All images either is running process or not shell session keep running the container and if shell access with attach command afterward same behavious as without -it mode.
 
+3.Execution Command(All-Ready Running container mode)
+This command only exectued if the container is already running.
+docker exec <container_Id> node
+Here If I want to execute some command of node based terminal in already running container with interactive mode just running like config file aur some script then useful.
+docker exec <container_Id> bash
+Here If I want to execute some command of container os based terminal in already running container with interactive mode just running like config file aur some script then useful.
+docker exec -it <container_id> node
+Here If I want to execute some comaand in iteractive mode shell of node then usefull
+docker exect -it <container_id> bash
+Here If I want to execute some comaand in iteractive mode shell of container os shell then usefull
 
 
