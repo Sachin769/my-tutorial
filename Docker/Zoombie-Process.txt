@@ -1,0 +1,4 @@
+Process = Program/Application in the running state is called process.It means it working with os resources
+
+Child Process = A child process is a new process created (or "spawned") by an existing process, known as the parent process.The parent process can create one or more child processes to
+                help it perform tasks in parallel.
