@@ -1,0 +1,172 @@
+Why Fastify is good compare to express
+
+Because no of request fastify handles more than express
+Because time taken to serve the request is less than express that make highly no. of request can handle
+Because very less mean time than express.
+Because of good amount of CPU and memory usage.
+
+
+What is fastify.register()
+
+It is the only way to add routes,plugin,etc.
+     By default, register creates a new scope, this means that if you make some changes to the Fastify instance (via decorate), this change will not be reflected by the current context 
+ancestors, but only by its descendants. This feature allows us to achieve plugin encapsulation and inheritance.
+
+But when we used fastify-plugin wrapped function to register then  registered function does affect ancestor instances.Encapsulation is bypassed, and changes are propagated to the parent 
+(ancestor) instance, making them globally available.
+
+Without Fastify-Plugin Registeration
+async function myPlugin(fastify, options) {
+    fastify.decorate("foo", "bar"); // Scoped to this plugin's instance
+}
+
+fastify.register(myPlugin);
+
+console.log(fastify.foo); // undefined (not visible in the parent)
+
+fastify.get("/", (req, reply) => {
+    reply.send({ foo: fastify.foo }); // undefined
+});
+here undefined because The reason console.log(fastify.foo) outputs undefined in your code is due to when the decoFunction is added to the Fastify instance. Plugins registered with
+fastify.register are loaded asynchronously and are not immediately available on the Fastify instance after registration.But to make lifecycle is good then fastify-plugin usefull.
+
+
+
+
+With Fastify-Plugin Registeration
+const fastifyPlugin = require("fastify-plugin");
+
+async function myPlugin(fastify, options) {
+    fastify.decorate("foo", "bar"); // Exposed globally
+}
+
+fastify.register(fastifyPlugin(myPlugin));
+
+console.log(fastify.foo); // 'bar' (visible in the parent)
+
+fastify.get("/", (req, reply) => {
+    reply.send({ foo: fastify.foo }); // 'bar'
+});
+Fastify knows myPlugin is a plugin and ensures it finishes registering before proceeding.The fastify-plugin library helps Fastify recognize these functions and guarantees they execute at 
+the right time during initialization.
+
+Note:
+Even though some functions (like apiPlugin) are not explicitly wrapped with fastify-plugin, they still work under specific conditions because of the parent plugin being registered as a 
+proper Fastify plugin.
+Example
+1.The app function (from app.js) is wrapped with fastify-plugin.
+2.Fastify recognizes it as a proper plugin and ensures it is executed during the appropriate lifecycle phase.
+3.Inside app, it registers other plugins like apiRoutes and servicePlugin.
+4.Each of these registered plugins is treated as a child of the app plugin.
+5.apiPlugin is not explicitly wrapped with fastify-plugin, so it’s technically just a plain asynchronous function.
+6.However, it works correctly when registered by a plugin like app that is already recognized by Fastify as a proper plugin.When app registers apiRoutes, Fastify treats apiRoutes as part 
+of the parent plugin’s lifecycle.Even though apiRoutes is not wrapped with fastify-plugin, it is executed synchronously as part of app, so everything works correctly.Fastify assumes the 
+child plugins are part of the parent plugin's lifecycle and ensures everything is initialized in the correct order.That is why apiRoutes does not need fastify-plugin.
+
+
+
+Question: Fastify provides a foundation that assists with asynchronous bootstrapping of your application. Why is this important?
+
+Answer: Consider the scenario where a database connection is needed to handle data storage. The database connection needs to be available before the server is accepting connections. 
+How do we address this problem?
+
+A typical solution is to use a complex callback, or promises - a system that will mix the framework API with other libraries and the application code.
+Fastify handles this internally, with minimum effort!
+
+
+
+index.js
+const fastify = require('fastify')({
+  logger: true
+})
+
+fastify.register(require('./our-db-connector'))
+fastify.register(require('./our-first-route'))
+
+fastify.listen({ port: 3000 }, function (err, address) {
+  if (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+  // Server is now listening on ${address}
+})
+
+
+our-db-connector.js
+const fastifyPlugin = require('fastify-plugin')
+async function dbConnector (fastify, options) {
+  fastify.register(require('@fastify/mongodb'), {
+    url: 'mongodb://localhost:27017/test_database'
+  })
+}
+
+// Wrapping a plugin function with fastify-plugin exposes the decorators
+// and hooks, declared inside the plugin to the parent scope.
+module.exports = fastifyPlugin(dbConnector)
+
+
+
+our-first-route.js
+async function routes (fastify, options) {
+  const collection = fastify.mongo.db.collection('test_collection')
+
+  fastify.get('/', async (request, reply) => {
+    return { hello: 'world' }
+  })
+
+  fastify.get('/animals', async (request, reply) => {
+    const result = await collection.find().toArray()
+    if (result.length === 0) {
+      throw new Error('No documents found')
+    }
+    return result
+  })
+
+  fastify.get('/animals/:animal', async (request, reply) => {
+    const result = await collection.findOne({ animal: request.params.animal })
+    if (!result) {
+      throw new Error('Invalid value')
+    }
+    return result
+  })
+
+  const animalBodyJsonSchema = {
+    type: 'object',
+    required: ['animal'],
+    properties: {
+      animal: { type: 'string' },
+    },
+  }
+
+  const schema = {
+    body: animalBodyJsonSchema,
+  }
+
+  fastify.post('/animals', { schema }, async (request, reply) => {
+    // we can use the `request.body` object to get the data sent by the client
+    const result = await collection.insertOne({ animal: request.body.animal })
+    return result
+  })
+}
+
+module.exports = routes
+
+This is one of the best features of Fastify, it will load your plugins in the same order you declare them, and it will load the next plugin only once the current one has been loaded. 
+In this way, we can register the database connector in the first plugin and use it in the second.
+The MongoDB plugin uses the decorate API to add custom objects to the Fastify instance, making them available for use everywhere.
+
+
+
+When to Use Fastify-Plugin
+1.When you need decorators, hooks, or middleware to be accessible across the entire application.like Decorators (fastify.decorate) and hooks of any function that going to be fastify-plugin
+can be shared globally.e.g  A plugin for logging or authentication.
+2.When you plan to use the same functionality across multiple Fastify applications or plugins.e.g Adding a database connection accessible everywhere.
+3.Lifecycle hooks like When you need to execute logic during app start or stop.e.g when app start mongodb connection and other connection shoudl establish if stop same way connection should
+closed.
+
+
+When to Skip Fastify-Plugin
+1.When you only need the functionality locally within a specific route or feature. eg. Registering a few routes for testing.
+2.When the registered logic doesn’t require global access or lifecycle hooks.
+3.Any decorators, hooks, or middleware defined in fun are scoped to its context and won't affect the rest of the application.
+
