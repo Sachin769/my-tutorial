@@ -1,0 +1,6 @@
+Plugins
+
+In fastify, a plugin is a way to extend functionlity in the fastify instance/object on the basis of application requirement.
+Like--> 1.Add new routes/endpoints
+        2.Add Middleware
+        3.Decorate(extend more key) this way we can add more function or key in fastify object to easily access.

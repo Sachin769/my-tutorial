@@ -8,7 +8,7 @@ Because of good amount of CPU and memory usage.
 
 What is fastify.register()
 
-It is the only way to add routes,plugin,etc.
+It is the only way to add routes,plugin,etc. in asyncrhonous way of normal plugin.
      By default, register creates a new scope, this means that if you make some changes to the Fastify instance (via decorate), this change will not be reflected by the current context 
 ancestors, but only by its descendants. This feature allows us to achieve plugin encapsulation and inheritance.
 
